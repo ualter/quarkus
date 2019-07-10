@@ -1,6 +1,9 @@
-FROM registry.fedoraproject.org/fedora-minimal
+# DISTROLESS Docker Image
+FROM debian:stable-slim AS build-env
+
+FROM gcr.io/distroless/base
 WORKDIR /work/
 COPY target/*-runner /work/application
-RUN chmod 775 /work
+COPY --from=build-env /lib/x86_64-linux-gnu/libz.so.1 /lib/x86_64-linux-gnu/libz.so.1
 EXPOSE 8080
 CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]

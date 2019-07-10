@@ -20,7 +20,7 @@ export GRAALVM_HOME=/Users/ualter/Developer/quarkus/graalvm-ce-19.1.0/Contents/H
 ### Create a Native Executable from the Running Quarkus Application
 #### Create a Native App of current Platform (MacOS) 
 mvn package -Pnative
-#### Create a Native App on a specific Plataform (Linux) - With this command we have a Native Linux executable of the this MicroServices 
+#### Create a Native App on a specific Plataform (Linux) - With this command we have a Native Linux executable of the this MicroServices (Everything in once file - JVM, App and Dependencies)
 mvn package -Pnative -Dnative-image.docker-build=true 
 
 
@@ -33,4 +33,4 @@ docker run -i --rm -p 8080:8080 quarkus/getting-started
 
 ### Docker Image for SpringBootBenchmarkApp
 mvn install dockerfile:build  
-docker run -i --rm -p 8080:8080 ualter/springboot-benchmark
+docker run -i --rm -p 8087:8087 ualter/springboot-benchmark

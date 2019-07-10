@@ -29,7 +29,7 @@ public class GreetingResourceTest {
           .when().get("/hello/greeting/{name}")
           .then()
             .statusCode(200)
-            .body(is("hello " + uuid + "\n"));
+            .body(is("Hello from Quarkus, " + uuid));
     }
 
 
