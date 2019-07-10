@@ -28,9 +28,9 @@ mvn package -Pnative -Dnative-image.docker-build=true
 docker build -t ualter/quarkus-app -f src/main/docker/Dockerfile.native .
 
 ### Create a Container from our generated Docker Image
-docker run -i --rm -p 8080:8080 quarkus/getting-started 
+docker run -i --rm -p 8080:8080 ualter/quarkus-app 
 
 
 ### Docker Image for SpringBootBenchmarkApp
 mvn install dockerfile:build  
-docker run -i --rm -p 8087:8087 ualter/springboot-benchmark
+docker run -i --rm -p 8087:8087 ualter/springboot-app
