@@ -1,0 +1,27 @@
+{
+  "family": "quarkus",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE", "EC2"],
+  "cpu": "512",
+  "memory": "1024",
+  "containerDefinitions": [
+    {
+      "name": "quarkus-app",
+      "image": "ualter/quarkus-app:latest",
+      "memoryReservation": 128,
+      "cpu": 512,
+      "memory": 1024,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "command": [
+        "./application", "-Dquarkus.http.host=0.0.0.0"
+      ],
+      "essential": true
+    }
+  ]
+}
