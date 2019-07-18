@@ -23,5 +23,10 @@
       ],
       "essential": true
     }
-  ]
+  ],
+  "awsvpcConfiguration": {
+    "subnets": ["subnet-df7c3f94", "subnet-7996b000", "subnet-144e7e4e"],
+    "securityGroups": ["sg-0507cb12a7638f8b4"],
+    "assignPublicIp": "ENABLED"
+  }
 }
