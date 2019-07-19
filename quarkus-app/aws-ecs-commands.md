@@ -12,7 +12,7 @@ $ docker push ualter/quarkus-app
 ### Deploy at AWS Fargate
 ##### Create a ECS Cluster
 ```bash
-$ aws ecs create-cluster  --cluster-name "quarkus" --tags key=project,value=quarkus
+$ aws ecs create-cluster  --cluster-name "quarkus"
 ```
 ##### Check it the clusters
 ```bash
@@ -23,46 +23,67 @@ $ aws ecs list-clusters
 $ aws ecs register-task-definition --cli-input-json file://task-definition.json
 ```
 
-### Create ELB for the Container
+##### Create ELB for the Container
 ```bash
-$ aws elbv2 create-load-balancer \
-                 --name elb-quarkus  \
-                 --subnets subnet-df7c3f94 subnet-7996b000 subnet-144e7e4e \
-                 --security-groups sg-0507cb12a7638f8b4
-```
-####### List the load balancer created 
-```bash
-$ aws elbv2 describe-load-balancers \
- | jq '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | [.LoadBalancerName,.VpcId,.LoadBalancerArn,.AvailabilityZones]'
- ```
-####### Create the Target Group for the ELB (same VPC ID)
-```bash
-$ aws elbv2 create-target-group --name target-groups-quarkus --protocol HTTP --port 8080 --vpc-id vpc-58ac7820 --target-type ip
-```
-####### List the Target Group created 
-```bash
-$ aws elbv2 describe-target-groups \
- | jq '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | [.TargetGroupName,.VpcId,.TargetGroupArn]'
- ```
-####### Create a Listener for ELB - Associate the Target Group to ELB
-```bash
-$ ELB=$(aws elbv2 describe-load-balancers  | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | .LoadBalancerArn')
+# Choose one of your VPCs
+ $ aws ec2 describe-vpcs | jq '.Vpcs[] | (" --------> VPC.....: " + .VpcId,.Tags,.CidrBlock)'
+ 
+# Save its Vpc-ID
+ $ VPC_ID=vpc-58ac7820
+ 
+# Check all its Subnets
+ $ aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID
+ 
+# List only the Subnets-IDs
+ $ aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq '.Subnets[].SubnetId'
+ 
+# Let's use them all
+ $ SUBNETS_IDS=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq -r '.Subnets[].SubnetId' | tr '\n' ' ')
 
-$ TARGET_GROUP=$(aws elbv2 describe-target-groups \
+
+# Create the Security Group (Ports 80, 8080)
+ $ SG_ID=$(aws ec2 create-security-group  --description "quarkus-DMZ" --group-name "quarkus-DMZ" --vpc-id $VPC_ID | jq -r .GroupId) 
+ $ aws ec2 authorize-security-group-ingress --group-id $SG_ID --ip-permissions IpProtocol=tcp,FromPort=8080,ToPort=8080,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=8080,ToPort=8080,Ipv6Ranges=[{CidrIpv6=::/0}] IpProtocol=tcp,FromPort=80,ToPort=80,Ipv6Ranges=[{CidrIpv6=::/0}]
+
+ 
+
+# Create the Load Balancer
+ $ aws elbv2 create-load-balancer \
+                 --name elb-quarkus  \
+                 --subnets $SUBNETS_IDS \
+                 --security-groups $SG_ID
+
+# List the load balancer created 
+ $ aws elbv2 describe-load-balancers \
+ | jq '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | [.LoadBalancerName,.VpcId,.LoadBalancerArn,.AvailabilityZones]'
+ 
+# Create the Target Group for the ELB (same VPC ID)
+ $ aws elbv2 create-target-group --name target-groups-quarkus --protocol HTTP --port 8080 --vpc-id $VPC_ID --target-type ip
+
+# List the Target Group created 
+ $ aws elbv2 describe-target-groups \
+ | jq '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | [.TargetGroupName,.VpcId,.TargetGroupArn]'
+
+# Create a Listener for ELB - Associate this Target Group to ELB
+ $ ELB=$(aws elbv2 describe-load-balancers  | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | .LoadBalancerArn')
+
+ $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | .TargetGroupArn')
 
-$ aws elbv2 create-listener --load-balancer-arn $ELB \
+ $ aws elbv2 create-listener --load-balancer-arn $ELB \
 --protocol HTTP --port 8080  \
 --default-actions Type=forward,TargetGroupArn=$TARGET_GROUP 
 ```
 
-!!! BEFORE CHECK AWS CLI Create Role arn:aws:iam::933272457605:role/quarkus-ecs-role
-
 ##### Service Creation
 ```bash
+$ SUBNETS_SERVICE=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq '.Subnets[].SubnetId' | tr '\n' ',' | sed 's/.$//')
+
+$ cat service-definition.json  | sed 's/$TARGET_GROUP/$TARGET_GROUP/' | sed 's/ENABLED/mierda/'
+
 $ aws ecs create-service --cli-input-json file://service-definition.json
 ```
-####### Check Service Info
+##### Check Service Info
 ```bash
 $ aws ecs describe-services --services "service-quarkus" --cluster "quarkus"
 
