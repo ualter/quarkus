@@ -1,5 +1,8 @@
 package ujr.quarkus.app;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -17,7 +20,13 @@ public class GreetingResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/greeting/{name}")
     public String greeting(@PathParam("name") String name) {
-        return service.greeting(name);
+		String ip = "";
+		try {
+			ip = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			ip = "Ops... " + e.getMessage();
+		}
+        return service.greeting(name) + "\n\n*Server_IP --> " + ip;
     }
 
     @GET

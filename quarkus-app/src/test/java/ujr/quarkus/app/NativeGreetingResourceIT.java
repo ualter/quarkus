@@ -1,4 +1,4 @@
-package ujr.springboot.app;
+package ujr.quarkus.app;
 
 import io.quarkus.test.junit.SubstrateTest;
 

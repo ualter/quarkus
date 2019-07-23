@@ -1,6 +1,7 @@
-package ujr.springboot.app;
+package ujr.quarkus.app;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class GreetingResourceTest {
           .when().get("/hello/greeting/{name}")
           .then()
             .statusCode(200)
-            .body(is("Hello from Quarkus, " + uuid));
+            .body(containsString("Hello from Quarkus, " + uuid));
     }
 
 

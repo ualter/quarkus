@@ -1,5 +1,5 @@
 
-### Docker Image
+## Docker Image Preparation
 ##### Login to Docker Hub
 ```bash
 $ docker login
@@ -9,7 +9,7 @@ $ docker login
 $ docker push ualter/quarkus-app
 ```
 
-### Deploy at AWS Fargate
+## Deploying at AWS Fargate
 ##### Create a ECS Cluster
 ```bash
 $ aws ecs create-cluster  --cluster-name "quarkus"
@@ -44,8 +44,8 @@ $ aws ecs register-task-definition --cli-input-json file://task-definition.json
 # Create the Security Group (Ports 80, 8080)
  $ SG_ID=$(aws ec2 create-security-group  --description "quarkus-DMZ" --group-name "quarkus-DMZ" --vpc-id $VPC_ID | jq -r .GroupId) 
  $ aws ec2 authorize-security-group-ingress --group-id $SG_ID --ip-permissions IpProtocol=tcp,FromPort=8080,ToPort=8080,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=8080,ToPort=8080,Ipv6Ranges=[{CidrIpv6=::/0}] IpProtocol=tcp,FromPort=80,ToPort=80,Ipv6Ranges=[{CidrIpv6=::/0}]
-
- 
+ # If this group already exist only put it its variable at the session
+$ SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select( .Description | contains("quarkus")) | .GroupId')
 
 # Create the Load Balancer
  $ aws elbv2 create-load-balancer \
@@ -65,8 +65,10 @@ $ aws ecs register-task-definition --cli-input-json file://task-definition.json
  | jq '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | [.TargetGroupName,.VpcId,.TargetGroupArn]'
 
 # Create a Listener for ELB - Associate this Target Group to ELB
+ ## Save the ELB ARN to a env variable 
  $ ELB=$(aws elbv2 describe-load-balancers  | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | .LoadBalancerArn')
 
+ ## Save the Target Group ELB to a env variable
  $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | .TargetGroupArn')
 
@@ -79,34 +81,41 @@ $ aws ecs register-task-definition --cli-input-json file://task-definition.json
 ```bash
 $ SUBNETS_SERVICE=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq '.Subnets[].SubnetId' | tr '\n' ',' | sed 's/.$//')
 
-$ cat service-definition.json  | sed 's/$TARGET_GROUP/$TARGET_GROUP/' | sed 's/ENABLED/mierda/'
+# Replace the variables on the Service Creation with our Created Services ID
+$ cat service-definition.json | sed 's~$TARGET_GROUP~'"$TARGET_GROUP"'~' | sed 's~$SUBNETS_SERVICE~'"$SUBNETS_SERVICE"'~' | sed 's~$SG_ID~'"$SG_ID"'~' > service-definition-ready.json
+$ 
 
-$ aws ecs create-service --cli-input-json file://service-definition.json
+$ aws ecs create-service --cli-input-json file://service-definition-ready.json
 ```
 ##### Check Service Info
 ```bash
 $ aws ecs describe-services --services "service-quarkus" --cluster "quarkus"
 
-$ aws ecs describe-services --services "service-quarkus" --cluster "quarkus" | jq '[ .services[] | ("Service: " + .serviceName + "     Status: " + .status + "     Containers: " + (.runningCount|tostring)) ]'
+$ aws ecs describe-services --services "service-quarkus" --cluster "quarkus" | jq '[ .services[] | ("Service: " + .serviceName + "     Status: " + .status + "     Containers: " + (.runningCount|tostring)  + "  DesiredCount: " + (.desiredCount|tostring)) ]'
 ```
 
 
 ##### Executing the Service
 ###### Set LoadBalancer DNSName Variable
 ```bash
-$ ELB=$(aws elbv2 describe-load-balancers | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | .DNSName')
+$ ELB_URL=$(aws elbv2 describe-load-balancers | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | .DNSName')
 
-$ curl -vw "\n\n" http://$ELB:8080/hello/greeting/ualter
+$ curl -vw "\n\n" http://$ELB_URL:8080/hello/greeting/ualter
 ```
 
-##### Service Update
-####### Change the Task Number (Containers numbers)
+##### Service Update (Containers - Scale Out / Scale In)
+####### Change the Task Number (Containers)
 ```bash
 $ aws ecs update-service --service service-quarkus --desired-count 3 --cluster quarkus
+
+# In case it's needed the command to save the Target Group Arn to a env variable (It should already exist this variable)
+$ aws elbv2 describe-target-groups | jq -r '.TargetGroups[] | select(.TargetGroupName | contains("quarkus")) | .TargetGroupArn'
+
+# List the Registered Targets (Ips and State) - Check the Scale out / Scale In
+$ aws elbv2 describe-target-health --target-group-arn $TARGET_GROUP | jq '.TargetHealthDescriptions[]'
 ```
 
-
-### CleanUp
+## CleanUp
 ##### Clean Service
 ```bash
 $ aws ecs update-service --service service-quarkus --desired-count 0 --cluster quarkus

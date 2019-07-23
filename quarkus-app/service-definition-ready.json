@@ -4,15 +4,15 @@
     "taskDefinition": "quarkus",
     "loadBalancers": [
         {
-            "targetGroupArn": "$TARGET_GROUP",
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-west-2:933272457605:targetgroup/target-groups-quarkus/e257d959367775c8",
             "containerName": "quarkus-app",
             "containerPort": 8080
         }
     ],
     "networkConfiguration": {
         "awsvpcConfiguration": {
-          "subnets": [$SUBNETS_SERVICE],
-          "securityGroups": ["$SG_ID"],
+          "subnets": ["subnet-df7c3f94","subnet-0c467624","subnet-144e7e4e","subnet-7996b000"],
+          "securityGroups": ["sg-06b305c17373c029f"],
           "assignPublicIp": "ENABLED"
         }
     },
