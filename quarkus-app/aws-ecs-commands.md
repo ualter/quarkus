@@ -100,7 +100,7 @@ $ aws ecs describe-services --services "service-quarkus" --cluster "quarkus" | j
 ```bash
 $ ELB_URL=$(aws elbv2 describe-load-balancers | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("quarkus")) | .DNSName')
 
-$ curl -vw "\n\n" http://$ELB_URL:8080/hello/greeting/ualter
+# $ curl -vw "\n\n" http://$ELB_URL:8080/hello/greeting/ualter
 ```
 
 ##### Service Update (Containers - Scale Out / Scale In)
@@ -114,6 +114,30 @@ $ aws elbv2 describe-target-groups | jq -r '.TargetGroups[] | select(.TargetGrou
 # List the Registered Targets (Ips and State) - Check the Scale out / Scale In
 $ aws elbv2 describe-target-health --target-group-arn $TARGET_GROUP | jq '.TargetHealthDescriptions[]'
 ```
+
+### More...
+#### Apache Benchmark, Gnuplot
+
+```bash
+# Apache Benchmark
+$ ab -n 50 -c 5 -g data.tsv "http://$ELB_URL:8080/hello/greeting/ualter/"
+
+# gnuplot
+$ brew install gnuplot #If not installed (Mac OS)
+
+$ gnuplot apache-benchmark.p
+$ gnuplot -e "TITLE='Requests'" -e "LINE='Response Time'" -e "IMAGE='benchmark.png'" apache-benchmark.p
+$ open benchmark.png
+
+$ gnuplot -e "TITLE='Requests'" -e "LINE='Response Time'" -e "PLOT=1" apache-benchmark.p
+$ open benchmark-1.png
+
+$ gnuplot -e "TITLE='Requests'" -e "LINE='Response Time'" -e "PLOT=4" apache-benchmark.p
+$ open benchmark-4.png
+
+
+```
+
 
 ## CleanUp
 ##### Clean Service
