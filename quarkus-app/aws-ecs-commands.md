@@ -104,7 +104,7 @@ $ ELB_URL=$(aws elbv2 describe-load-balancers | jq -r '.LoadBalancers[] | select
 ```
 
 ##### Service Update (Containers - Scale Out / Scale In)
-####### Change the Task Number (Containers)
+###### Scale out (manually)
 ```bash
 $ aws ecs update-service --service service-quarkus --desired-count 3 --cluster quarkus
 
@@ -113,6 +113,27 @@ $ aws elbv2 describe-target-groups | jq -r '.TargetGroups[] | select(.TargetGrou
 
 # List the Registered Targets (Ips and State) - Check the Scale out / Scale In
 $ aws elbv2 describe-target-health --target-group-arn $TARGET_GROUP | jq '.TargetHealthDescriptions[]'
+```
+
+###### AutoScaling Policy
+```bash
+
+# Register Scalable Target
+$ aws application-autoscaling register-scalable-target --service-namespace ecs --scalable-dimension ecs:service:DesiredCount --resource-id service/quarkus/service-quarkus --min-capacity 1 --max-capacity 3
+
+# Create Scaling Policy
+$ aws application-autoscaling put-scaling-policy --service-namespace ecs \
+--scalable-dimension ecs:service:DesiredCount \
+--resource-id service/quarkus/service-quarkus \
+--policy-name mem2-target-tracking-scaling-policy --policy-type TargetTrackingScaling \
+--target-tracking-scaling-policy-configuration file://service-auto-scaling.json
+
+# Remove Scaling Policy
+$ aws application-autoscaling delete-scaling-policy --policy-name mem2-target-tracking-scaling-policy --scalable-dimension ecs:service:DesiredCount --resource-id service/quarkus/service-quarkus --service-namespace ecs
+
+# Deregister Scalable Target
+$ aws application-autoscaling deregister-scalable-target --service-namespace ecs --scalable-dimension ecs:service:DesiredCount --resource-id service/quarkus/service-quarkus
+
 ```
 
 ### More...
@@ -150,7 +171,7 @@ $ aws ecs delete-service --cluster "quarkus" --service "service-quarkus"
 ```bash
 $ aws ecs deregister-task-definition --task-definition "quarkus:1"
 # or (all revisions, if more than 1)
-$ for i in {1..10}; do aws ecs deregister-task-definition --task-definition quarkus:$i ; done
+$ for i in {1..12}; do aws ecs deregister-task-definition --task-definition quarkus:$i ; done
 ```
 ##### Clean Cluster
 ```bash

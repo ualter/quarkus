@@ -4,7 +4,7 @@
     "taskDefinition": "quarkus",
     "loadBalancers": [
         {
-            "targetGroupArn": "arn:aws:elasticloadbalancing:us-west-2:933272457605:targetgroup/target-groups-quarkus/2d329a5807705f27",
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-west-2:933272457605:targetgroup/target-groups-quarkus/38887ca7bbb9c3e8",
             "containerName": "quarkus-app",
             "containerPort": 8080
         }
