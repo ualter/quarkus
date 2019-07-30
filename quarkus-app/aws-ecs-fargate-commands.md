@@ -9,7 +9,7 @@ $ docker login
 $ docker push ualter/quarkus-app
 ```
 
-## Deploying at AWS Fargate
+## ECS with AWS Fargate
 ##### Create a ECS Cluster
 ```bash
 $ aws ecs create-cluster  --cluster-name "quarkus"
@@ -82,10 +82,10 @@ $ SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select( 
 $ SUBNETS_SERVICE=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq '.Subnets[].SubnetId' | tr '\n' ',' | sed 's/.$//')
 
 # Replace the variables on the Service Creation with our Created Services ID
-$ cat service-definition.json | sed 's~$TARGET_GROUP~'"$TARGET_GROUP"'~' | sed 's~$SUBNETS_SERVICE~'"$SUBNETS_SERVICE"'~' | sed 's~$SG_ID~'"$SG_ID"'~' > service-definition-ready.json
+$ cat service-definition-template.json | sed 's~$TARGET_GROUP~'"$TARGET_GROUP"'~' | sed 's~$SUBNETS_SERVICE~'"$SUBNETS_SERVICE"'~' | sed 's~$SG_ID~'"$SG_ID"'~' > service-definition-fargate.json
 $ 
 
-$ aws ecs create-service --cli-input-json file://service-definition-ready.json
+$ aws ecs create-service --cli-input-json file://service-definition-fargate.json
 ```
 ##### Check Service Info
 ```bash
@@ -189,5 +189,3 @@ $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | .TargetGroupArn')
 $ aws elbv2 delete-target-group --target-group-arn $TARGET_GROUP
 ```
-
-

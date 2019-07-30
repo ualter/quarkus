@@ -1,0 +1,27 @@
+{
+  "family": "quarkus",
+  "networkMode": "host",
+  "requiresCompatibilities": ["EC2"],
+  "cpu": "256",
+  "memory": "512",
+  "containerDefinitions": [
+    {
+      "name": "quarkus-app",
+      "image": "ualter/quarkus-app:latest",
+      "memoryReservation": 128,
+      "cpu": 256,
+      "memory": 512,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "command": [
+        "./application", "-Dquarkus.http.host=0.0.0.0"
+      ],
+      "essential": true
+    }
+  ]
+}

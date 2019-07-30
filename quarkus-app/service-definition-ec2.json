@@ -1,0 +1,7 @@
+{
+    "cluster": "quarkus-ec2",
+    "serviceName": "service-quarkus-ec2",
+    "taskDefinition": "quarkus",
+    "desiredCount": 1,
+    "launchType": "EC2"
+}
