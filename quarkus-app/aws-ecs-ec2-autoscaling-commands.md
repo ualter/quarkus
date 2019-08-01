@@ -24,15 +24,16 @@ $ aws elbv2 create-load-balancer --name "ECSQuarkusLoadBalancer" --subnets $SUBN
 # List Load Balancer
 $ aws elbv2 describe-load-balancers  | jq '.LoadBalancers[] | select( .LoadBalancerName | contains("ECS")) | [.LoadBalancerName,.VpcId,.LoadBalancerArn,.AvailabilityZones]'
 
-# Create a Listener for ELB - Associate this Target Group to ELB
- ## Save the ELB ARN to a env variable 
- $ ELB=$(aws elbv2 describe-load-balancers  | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("ECSQuarkus")) | .LoadBalancerArn')
+## Create a Listener for ELB - Associate this Target Group to ELB
+# Save the ELB ARN to a env variable 
+$ ELB=$(aws elbv2 describe-load-balancers  | jq -r '.LoadBalancers[] | select( .LoadBalancerName | contains("ECSQuarkus")) | .LoadBalancerArn')
 
- ## Save the Target Group ELB to a env variable
- $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
+# Save the Target Group ELB to a env variable
+$ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("ECSQuarkus")) | .TargetGroupArn')
 
- $ aws elbv2 create-listener --load-balancer-arn $ELB \
+# Create Listener for the Load Balancer with the created Target Group
+$ aws elbv2 create-listener --load-balancer-arn $ELB \
 --protocol HTTP --port 8080  \
 --default-actions Type=forward,TargetGroupArn=$TARGET_GROUP
 
