@@ -2,15 +2,15 @@
   "family": "quarkus",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE", "EC2"],
-  "cpu": "512",
-  "memory": "1024",
+  "cpu": "256",
+  "memory": "512",
   "containerDefinitions": [
     {
       "name": "quarkus-app",
       "image": "ualter/quarkus-app:latest",
       "memoryReservation": 128,
-      "cpu": 512,
-      "memory": 1024,
+      "cpu": 256,
+      "memory": 512,
       "portMappings": [
         {
           "containerPort": 8080,

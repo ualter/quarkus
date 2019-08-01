@@ -40,7 +40,6 @@ $ aws ecs register-task-definition --cli-input-json file://task-definition.json
 # Let's use them all
  $ SUBNETS_IDS=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq -r '.Subnets[].SubnetId' | tr '\n' ' ')
 
-
 # Create the Security Group (Ports 80, 8080)
  $ SG_ID=$(aws ec2 create-security-group  --description "quarkus-DMZ" --group-name "quarkus-DMZ" --vpc-id $VPC_ID | jq -r .GroupId) 
  $ aws ec2 authorize-security-group-ingress --group-id $SG_ID --ip-permissions IpProtocol=tcp,FromPort=8080,ToPort=8080,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=8080,ToPort=8080,Ipv6Ranges=[{CidrIpv6=::/0}] IpProtocol=tcp,FromPort=80,ToPort=80,Ipv6Ranges=[{CidrIpv6=::/0}]
@@ -72,6 +71,7 @@ $ SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select( 
  $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | .TargetGroupArn')
 
+ ## Create Listener for LoadBalancer (associate with Target Group)
  $ aws elbv2 create-listener --load-balancer-arn $ELB \
 --protocol HTTP --port 8080  \
 --default-actions Type=forward,TargetGroupArn=$TARGET_GROUP 
