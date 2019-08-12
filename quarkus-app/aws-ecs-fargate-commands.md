@@ -189,3 +189,7 @@ $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | .TargetGroupArn')
 $ aws elbv2 delete-target-group --target-group-arn $TARGET_GROUP
 ```
+##### Clean the Security Group
+```bash
+$ aws ec2 delete-security-group --group-id $SG_ID
+```
