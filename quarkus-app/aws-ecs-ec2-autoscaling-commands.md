@@ -63,7 +63,7 @@ $ aws autoscaling create-launch-configuration --launch-configuration-name "ECSQu
 
 # Auto Scaling Group
 $ SUBNETS_IDS_AUTOSCALING=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq -r '.Subnets[].SubnetId' | tr '\n' ',')
-$ aws autoscaling create-auto-scaling-group --auto-scaling-group-name "ECSQuarkusAutoScalingGroup" --launch-configuration-name "ECSQuarkusMachines" --min-size 1 --max-size 3 --desired-capacity 1 --vpc-zone-identifier $SUBNETS_IDS_AUTOSCALING --target-group-arns $TARGET_GROUP --health-check-type "EC2"  --health-check-grace-period 30 --default-cooldown 32
+$ aws autoscaling create-auto-scaling-group --auto-scaling-group-name "ECSQuarkusAutoScalingGroup" --launch-configuration-name "ECSQuarkusMachines" --min-size 1 --max-size 3 --desired-capacity 1 --vpc-zone-identifier $SUBNETS_IDS_AUTOSCALING --target-group-arns $TARGET_GROUP --health-check-type "EC2"  --health-check-grace-period 30 --default-cooldown 32 --tags Key=Name,Value=Quarkus-EC2-Instance,PropagateAtLaunch=true
 
 # List instance created by the Auto Scaling (if min-size > 1)
 $ aws ec2 describe-instances --filter "Name=tag-value,Values=ECSQuarkusAutoScalingGroup,Name=tag-key,Values=aws:autoscaling:groupName"
