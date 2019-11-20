@@ -28,6 +28,8 @@ $ aws elbv2 describe-target-groups  | jq '.TargetGroups[] | select( .TargetGroup
 
 # Create the Security Group (Ports 80, 8080) - If do not exist!
 $ SG_ID=$(aws ec2 create-security-group  --description "quarkus-DMZ" --group-name "quarkus-DMZ" --vpc-id $VPC_ID | jq -r .GroupId) 
+# Tag the Security Group
+$ aws ec2 create-tags --resources $SG_ID --tags 'Key=Name,Value=Quarkus-EC2-Instance'
 $ aws ec2 authorize-security-group-ingress --group-id $SG_ID --ip-permissions IpProtocol=tcp,FromPort=8080,ToPort=8080,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=8080,ToPort=8080,Ipv6Ranges=[{CidrIpv6=::/0}] IpProtocol=tcp,FromPort=80,ToPort=80,Ipv6Ranges=[{CidrIpv6=::/0}]
 # If this group already exist only put it its variable at the session
 $ SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select( .Description | contains("quarkus")) | .GroupId')
@@ -61,7 +63,7 @@ $ aws autoscaling create-launch-configuration --launch-configuration-name "ECSQu
 
 # Auto Scaling Group
 $ SUBNETS_IDS_AUTOSCALING=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq -r '.Subnets[].SubnetId' | tr '\n' ',')
-$ aws autoscaling create-auto-scaling-group --auto-scaling-group-name "ECSQuarkusAutoScalingGroup" --launch-configuration-name "ECSQuarkusMachines" --min-size 1 --max-size 3 --desired-capacity 1 --vpc-zone-identifier $SUBNETS_IDS_AUTOSCALING --target-group-arns $TARGET_GROUP --health-check-type "EC2"  --health-check-grace-period 30 --default-cooldown 32
+$ aws autoscaling create-auto-scaling-group --auto-scaling-group-name "ECSQuarkusAutoScalingGroup" --launch-configuration-name "ECSQuarkusMachines" --min-size 1 --max-size 3 --desired-capacity 1 --vpc-zone-identifier $SUBNETS_IDS_AUTOSCALING --target-group-arns $TARGET_GROUP --health-check-type "EC2"  --health-check-grace-period 30 --default-cooldown 32 --tags Key=Name,Value=Quarkus-EC2-Instance,PropagateAtLaunch=true
 
 # List instance created by the Auto Scaling (if min-size > 1)
 $ aws ec2 describe-instances --filter "Name=tag-value,Values=ECSQuarkusAutoScalingGroup,Name=tag-key,Values=aws:autoscaling:groupName"

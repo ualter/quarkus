@@ -43,6 +43,7 @@ $ aws ecs register-task-definition --cli-input-json file://task-definition.json
 # Create the Security Group (Ports 80, 8080)
  $ SG_ID=$(aws ec2 create-security-group  --description "quarkus-DMZ" --group-name "quarkus-DMZ" --vpc-id $VPC_ID | jq -r .GroupId) 
  $ aws ec2 authorize-security-group-ingress --group-id $SG_ID --ip-permissions IpProtocol=tcp,FromPort=8080,ToPort=8080,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0}] IpProtocol=tcp,FromPort=8080,ToPort=8080,Ipv6Ranges=[{CidrIpv6=::/0}] IpProtocol=tcp,FromPort=80,ToPort=80,Ipv6Ranges=[{CidrIpv6=::/0}]
+ $ aws ec2 create-tags --resources $SG_ID --tags 'Key=Name,Value=Quarkus-EC2-Instance'
  # If this group already exist only put it its variable at the session
 $ SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select( .Description | contains("quarkus")) | .GroupId')
 
@@ -82,8 +83,7 @@ $ SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select( 
 $ SUBNETS_SERVICE=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC_ID | jq '.Subnets[].SubnetId' | tr '\n' ',' | sed 's/.$//')
 
 # Replace the variables on the Service Creation with our Created Services ID
-$ cat service-definition-template.json | sed 's~$TARGET_GROUP~'"$TARGET_GROUP"'~' | sed 's~$SUBNETS_SERVICE~'"$SUBNETS_SERVICE"'~' | sed 's~$SG_ID~'"$SG_ID"'~' > service-definition-fargate.json
-$ 
+$ cat service-definition-fargate-template.json | sed 's~$TARGET_GROUP~'"$TARGET_GROUP"'~' | sed 's~$SUBNETS_SERVICE~'"$SUBNETS_SERVICE"'~' | sed 's~$SG_ID~'"$SG_ID"'~' > service-definition-fargate.json
 
 $ aws ecs create-service --cli-input-json file://service-definition-fargate.json
 ```
@@ -188,4 +188,8 @@ $ aws elbv2 delete-load-balancer --load-balancer-arn $ELB
 $ TARGET_GROUP=$(aws elbv2 describe-target-groups \
  | jq -r '.TargetGroups[] | select( .TargetGroupName | contains("quarkus")) | .TargetGroupArn')
 $ aws elbv2 delete-target-group --target-group-arn $TARGET_GROUP
+```
+##### Clean the Security Group
+```bash
+$ aws ec2 delete-security-group --group-id $SG_ID
 ```
