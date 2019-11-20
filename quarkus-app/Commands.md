@@ -50,3 +50,25 @@ docker run -i --rm -p 8080:8080 ualter/quarkus-app
 mvn install dockerfile:build  
 docker run -i --rm -p 8087:8087 ualter/springboot-app
 ```
+
+### Taurus (https://gettaurus.org/)
+```bash
+$ docker pull blazemeter/taurus
+
+# Get the Host Docker IP
+# Using the Busybox image, stored at environment variable:
+$ HOST_DOCKER_IP=`docker run busybox ping -c 1 host.docker.internal | awk 'FNR==2 {print $4}' | sed s'/.$//'`
+# Manually (two steps)
+## Use any running container image
+$ docker exec -it IMAGE_ID
+## Run the command below inside the container to get the IP  
+$ nslookup host.docker.internal
+
+
+$ docker run --rm -v /tmp/taurus_scripts:/bzt-configs -v /tmp/taurus_artifacts:/tmp/artifacts -it blazemeter/taurus script_test_taurus.yaml -o settings.env.HOST_DOCKER_IP=$HOST_DOCKER_IP
+
+$ docker run --rm -v /tmp/taurus_scripts:/bzt-configs -v /tmp/taurus_artifacts:/tmp/artifacts -it blazemeter/taurus script_test_taurus.yaml -o settings.env.HOST_DOCKER_IP=192.168.65.2 
+
+# Extra commands
+$ docker run -it blazemeter/taurus http://blazedemo.com
+```
