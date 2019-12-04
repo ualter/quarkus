@@ -1,0 +1,22 @@
+execution:
+- concurrency: 5
+  ramp-up: 20s
+  hold-for: 2m
+  scenario: Simple
+ 
+
+#scenarios:
+#  Simple :
+#    default-address: "https://www.wordreference.com"
+#    requests: 
+#      - label: "/definicion/ocurre"
+#        url: "/definicion/ocurre"
+#        method: GET
+
+scenarios:
+  Simple :
+    default-address: "http://${HOST_DOCKER_IP}:8081"
+    requests: 
+      - label: "Quarkus Echo"
+        url: "/echo/ualter"
+        method: GET

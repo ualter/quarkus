@@ -1,0 +1,4 @@
+FROM cescoffier/native-base:latest
+COPY target/*-runner /application
+EXPOSE 8080
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
