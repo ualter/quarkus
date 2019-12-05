@@ -63,8 +63,8 @@ nb-configuration.xml
 .env
 graalvm-ce-19.1.0/
 graalvm-ce-19.2.1/
+combat-quarkus-vs-spring/springboot-echo/src/main/taurus/artifacts/
 combat-quarkus-vs-spring/quarkus-echo/src/main/taurus/artifacts/
 combat-quarkus-vs-spring/quarkus-echo/src/main/taurus/jmeter.log
-combat-quarkus-vs-spring/springboot-echo/src/main/taurus/artifacts/
 combat-quarkus-vs-spring/springboot-echo/src/main/taurus/jmeter.log
 
