@@ -1,6 +1,6 @@
 execution:
-- concurrency: 5
-  ramp-up: 20s
+- concurrency: 20
+  ramp-up: 5s
   hold-for: 2m
   scenario: Simple
  
@@ -15,8 +15,8 @@ execution:
 
 scenarios:
   Simple :
-    default-address: "http://${HOST_DOCKER_IP}:8081"
+    default-address: "http://${HOST_DOCKER_IP}:8082"
     requests: 
-      - label: "Quarkus Echo"
+      - label: "Spring Boot Echo"
         url: "/echo/ualter"
         method: GET
