@@ -53,7 +53,7 @@ docker build -t ujr/quarkus-echo -f src/main/docker/Dockerfile.native .
 
 ### Create a Container from our generated Docker Image
 ```bash
-docker run -i --rm -p 8081:8081 ualter/quarkus-app 
+docker run -i --name quarkus-echo --rm -p 8081:8081 ujr/quarkus-echo 
 ```
 
 ### Docker Image for SpringBootBenchmarkApp
